@@ -1,0 +1,44 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@lib/*": ["./app/lib/*"],
+      "@configs/*": ["./app/lib/configs/*"],
+      "@contexts/*": ["./app/lib/contexts/*"],
+      "@components/*": ["./app/lib/components/*"],
+      "@constants/*": ["./app/lib/constants/*"],
+      "@interfaces/*": ["./app/lib/interfaces/*"],
+      "@services/*": ["./app/lib/services/*"],
+      "@ui/*": ["./app/lib/ui/*"],
+      "@utils/*": ["./app/lib/utils/*"],
+      "@layouts/*": ["./app/lib/layouts/*"],
+      "@hooks/*": ["./app/lib/hooks/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
