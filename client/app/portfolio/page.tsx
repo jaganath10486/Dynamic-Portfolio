@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import PortfolioClient from "./components";
 import PortfolioService from "@services/portfolio.service";
 import type {
-  PortfolioHoldingsDto,
-  PortfolioSummaryDto,
+  PortfolioHoldingsInterface,
+  PortfolioSummaryInterface,
 } from "@interfaces/portfolio.interface";
 
 export const metadata: Metadata = {
@@ -21,8 +21,8 @@ export const metadata: Metadata = {
 export default async function PortfolioPage() {
   const service = new PortfolioService();
 
-  let initialHoldings: PortfolioHoldingsDto | null = null;
-  let initialSummary: PortfolioSummaryDto | null = null;
+  let initialHoldings: PortfolioHoldingsInterface | null = null;
+  let initialSummary: PortfolioSummaryInterface | null = null;
   let initialError: string | null = null;
 
   try {
