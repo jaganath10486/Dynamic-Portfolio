@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import PortfolioService from '@services/portfolio.service';
+import type { HoldingsQuery } from '@schemas/portfolio.schema';
 
 class PortfolioController {
   private readonly portfolioService: PortfolioService;
@@ -12,7 +13,8 @@ class PortfolioController {
 
   public async getHoldings(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const data = await this.portfolioService.getPortfolioHoldings();
+      const filter = res.locals.query as HoldingsQuery;
+      const data = await this.portfolioService.getPortfolioHoldings(filter);
       res.json({ data, message: 'Portfolio holdings fetched successfully' });
     } catch (err) {
       next(err);

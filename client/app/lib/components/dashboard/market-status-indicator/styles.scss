@@ -1,0 +1,58 @@
+.msi-wrap {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+
+  &--open {
+    background: rgba(52, 211, 153, 0.08);
+    border-color: rgba(52, 211, 153, 0.2);
+    color: #34d399;
+
+    .msi-dot {
+      background: #34d399;
+      box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.25);
+      animation: msi-pulse 2s ease infinite;
+    }
+  }
+
+  &--closed {
+    background: rgba(100, 116, 139, 0.1);
+    border-color: rgba(100, 116, 139, 0.18);
+    color: #64748b;
+
+    .msi-dot {
+      background: #64748b;
+    }
+  }
+}
+
+.msi-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.msi-label {
+  line-height: 1;
+}
+
+@keyframes msi-pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.25);
+  }
+
+  50% {
+    box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.1);
+  }
+}

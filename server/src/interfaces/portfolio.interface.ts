@@ -1,6 +1,5 @@
 import { Sector } from '@enums/sector.enum';
 
-//portfolio holding interface(excel)
 export interface IPortfolioHolding {
   particulars: string;
   sector: Sector;
@@ -9,7 +8,6 @@ export interface IPortfolioHolding {
   nseCode: string;
 }
 
-//portfolio holding interface(the data that is sent to the client)
 export interface HoldingDto {
   sector: Sector;
   particulars: string;
@@ -24,10 +22,8 @@ export interface HoldingDto {
   gainLossPct: number | null;
   peRatio: number | null;
   latestEarnings: number | null;
-  isDataStale: boolean;
 }
 
-//portfolio section holding interface(the data that is sent to the client)
 export interface SectorSummaryDto {
   sectorName: Sector;
   totalInvestment: number;

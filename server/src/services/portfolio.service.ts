@@ -16,6 +16,7 @@ import type {
   IPortfolioHolding,
 } from '@interfaces/portfolio.interface';
 import { Sector } from '@enums/sector.enum';
+import type { HoldingsQuery } from '@schemas/portfolio.schema';
 
 interface FundamentalsData {
   peRatio: number | null;
@@ -41,8 +42,7 @@ class PortfolioService {
     return PortfolioService.instance;
   }
 
-  // Returns a flat holdings list — frontend handles grouping
-  public async getPortfolioHoldings(): Promise<PortfolioHoldingsDto> {
+  public async getPortfolioHoldings(filter?: HoldingsQuery): Promise<PortfolioHoldingsDto> {
     const totalInvestment = portfolioHoldings.reduce(
       (sum, h) => sum + h.purchasePrice * h.qty,
       0,
@@ -53,14 +53,27 @@ class PortfolioService {
       this.fetchAllFundamentals(),
     ]);
 
-    const holdings = portfolioHoldings.map((h) =>
+    let holdings = portfolioHoldings.map((h) =>
       this.buildHoldingDto(h, cmpMap, fundamentalsData, totalInvestment),
     );
+
+    if (filter?.sectors?.length) {
+      holdings = holdings.filter((h) => filter.sectors.includes(h.sector));
+    }
+
+    if (filter?.searchText) {
+      const q = filter.searchText.toLowerCase();
+      holdings = holdings.filter(
+        (h) =>
+          h.particulars.toLowerCase().includes(q) ||
+          h.nseCode.toLowerCase().includes(q) ||
+          h.sector.toLowerCase().includes(q),
+      );
+    }
 
     return { isMarketOpen: isNseOpen(), holdings };
   }
 
-  // Groups holdings by sector server-side for the summary cards
   public async getPortfolioSummary(): Promise<PortfolioSummaryDto> {
     const { isMarketOpen, holdings } = await this.getPortfolioHoldings();
 
@@ -93,7 +106,6 @@ class PortfolioService {
     const result = new Map<string, number | null>();
     const missedNseCodes: string[] = [];
 
-    // Step 1: Check cache for each ticker's CMP
     await Promise.all(
       portfolioHoldings.map(async (h) => {
         const cacheKey = `${CacheStructureKey.MarketCmp}:${h.nseCode}`;
@@ -110,22 +122,19 @@ class PortfolioService {
 
     if (missedNseCodes.length === 0) return result;
 
-    // Step 2: Batch-fetch from Yahoo Finance for all cache misses
     let freshCmpData: Map<string, number | null>;
     try {
       freshCmpData = await this.marketDataRepo.fetchBatch(missedNseCodes);
     } catch (err) {
-      // Yahoo Finance unavailable — serve with isDataStale: true for all affected tickers
       if (err instanceof ExternalApiError) {
-        console.warn('[CMP] Yahoo Finance unavailable, all prices marked stale:', err.message);
+        console.warn('Yahoo Finance not avilable:', err.message);
       } else {
-        console.error('[CMP] Unexpected error fetching market data:', err);
+        console.error('Unexpected error fetching market data:', err);
       }
       return result;
     }
     const freshEntries = Array.from(freshCmpData.entries());
 
-    // Step 3: Populate result map and back-fill cache with fresh prices
     await Promise.all(
       freshEntries.map(async ([nseCode, cmp]) => {
         result.set(nseCode, cmp);
@@ -142,7 +151,6 @@ class PortfolioService {
     return result;
   }
 
-  // Per-ticker: cache-first, then Google Finance scrape
   private async fetchFundamentalsForTicker(h: IPortfolioHolding): Promise<FundamentalsData> {
     const cacheKey = `${CacheStructureKey.FundamentalsData}:${h.nseCode}`;
 
@@ -156,11 +164,10 @@ class PortfolioService {
     try {
       fresh = await this.fundamentalsRepo.scrape(googlePath);
     } catch (err) {
-      // Google Finance unavailable for this ticker — return nulls, don't crash the whole response
       if (err instanceof ExternalApiError) {
-        console.warn(`[Fundamentals] Scrape degraded for ${h.nseCode}:`, err.message);
+        console.warn(`Scrape degraded for ${h.nseCode}:`, err.message);
       } else {
-        console.error(`[Fundamentals] Unexpected error for ${h.nseCode}:`, err);
+        console.error(`Unexpected error for ${h.nseCode}:`, err);
       }
       return { peRatio: null, latestEarnings: null };
     }
@@ -169,7 +176,6 @@ class PortfolioService {
     return fresh;
   }
 
-  // All tickers: fans out fetchFundamentalsForTicker in parallel
   private async fetchAllFundamentals(): Promise<Map<string, FundamentalsData>> {
     const entries = await Promise.all(
       portfolioHoldings.map(async (h) => {
@@ -208,7 +214,6 @@ class PortfolioService {
       gainLossPct,
       peRatio: fundamentals?.peRatio ?? null,
       latestEarnings: fundamentals?.latestEarnings ?? null,
-      isDataStale: cmp === null,
     };
   }
 
